@@ -28,7 +28,8 @@ func main() {
 	load_env()
 
 	adzuna := adzuna_client.AdzunaClient{
-		APIKey: "",
+		AppId: "",
+		AppKey: "",
 		BaseUrl: "",
 	}
 
