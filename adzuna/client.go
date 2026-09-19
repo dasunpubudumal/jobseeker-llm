@@ -23,13 +23,13 @@ type AdzunaResponse struct {
 	Results []AdjunaJobResult `json:"results"`
 }
 
-func (r *AdzunaResponse) AsJSONString() string {
+func (r *AdzunaResponse) AsJSONString() (string, error) {
 	bytes, err := json.Marshal(r)
 	if err != nil {
-		log.Fatal(fmt.Errorf("error marshalling the Adzuna response: %v", err))
+		return "", err
 	}
 
-	return string(bytes)
+	return string(bytes), nil
 }
 
 type AdjunaJobResult struct {
@@ -53,7 +53,7 @@ type AdjunaJobResultCategory struct {
 	Tag   string `json:"tag"`
 }
 
-func (c *AdzunaClient) GetJobsForAJobType(jobType string) AdzunaResponse {
+func (c *AdzunaClient) GetJobsForAJobType(jobType string) (AdzunaResponse, error) {
 	var response AdzunaResponse
 	_, err := c.HTTPClient.
 		R().
@@ -65,10 +65,10 @@ func (c *AdzunaClient) GetJobsForAJobType(jobType string) AdzunaResponse {
 		ExpectContentType("application/json").
 		Get(fmt.Sprintf("%s/jobs/gb/search/1", c.BaseURL))
 	if err != nil {
-		log.Fatal(fmt.Errorf("error in sending the request to Adjuna: %v", err))
+		return AdzunaResponse{}, err
 	}
 
 	log.Printf("Adzuna was called for %s; responded with %d results", jobType, response.Count)
 
-	return response
+	return response, nil
 }

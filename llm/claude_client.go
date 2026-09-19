@@ -16,7 +16,7 @@ type ToolUseType struct {
 
 type CaludeClient struct{}
 
-func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) LLMResponse {
+func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) (LLMResponse, error) {
 	client := anthropic.NewClient()
 	context := context.Background()
 
@@ -51,7 +51,7 @@ func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) L
 		Messages:   messages,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return LLMResponse{}, err
 	}
 
 	var toolUse anthropic.ContentBlockUnion
@@ -62,27 +62,37 @@ func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) L
 		}
 	}
 
-	log.Println("Claude called %s with %s\n", toolUse.Name, string(toolUse.Input))
+	log.Printf("Claude called %s with %s\n", toolUse.Name, string(toolUse.Input))
 
 	// Now, run the tool.
 	args, err := toolUse.Input.MarshalJSON()
 	if err != nil {
-		log.Fatal(err)
+		return LLMResponse{}, err
 	}
 	toolUseStruct := &ToolUseType{}
-	json.Unmarshal(args, toolUseStruct)
+	err = json.Unmarshal(args, toolUseStruct)
+	if err != nil {
+		return LLMResponse{}, err
+	}
 
-	jobs := adzunaClient.GetJobsForAJobType(toolUseStruct.JobType)
+	jobs, err := adzunaClient.GetJobsForAJobType(toolUseStruct.JobType)
+	if err != nil {
+		return LLMResponse{}, err
+	}
 	var assistantContent []anthropic.ContentBlockParamUnion
 	for _, block := range response.Content {
 		assistantContent = append(assistantContent, block.ToParam())
+	}
+	jobsJson, err := jobs.AsJSONString()
+	if err != nil {
+		return LLMResponse{}, err
 	}
 	messages = append(
 		messages,
 		anthropic.NewAssistantMessage(assistantContent...),
 		anthropic.NewUserMessage(anthropic.NewToolResultBlock(
 			toolUse.ID,
-			jobs.AsJSONString(),
+			jobsJson,
 			false,
 		)),
 	)
@@ -94,7 +104,7 @@ func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) L
 		Messages:   messages,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return LLMResponse{}, err
 	}
 
 	var resp string
@@ -109,5 +119,5 @@ func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) L
 
 	return LLMResponse{
 		response: resp,
-	}
+	}, nil
 }

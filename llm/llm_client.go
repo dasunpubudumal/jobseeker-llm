@@ -8,5 +8,5 @@ type LLMResponse struct {
 }
 
 type LLMClient interface {
-	Invoke(prompt string, adzunaClient adzuna.AdzunaClient) LLMResponse
+	Invoke(prompt string, adzunaClient adzuna.AdzunaClient) (LLMResponse, error)
 }

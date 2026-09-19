@@ -67,7 +67,10 @@ func main() {
 			HTTPClient: restyClient,
 		}
 
-		resp := llmClient.Invoke(text, adzuna)
+		resp, err := llmClient.Invoke(text, adzuna)
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println(resp)
 	}
 }
