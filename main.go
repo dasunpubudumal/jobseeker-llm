@@ -14,7 +14,7 @@ import (
 	"os"
 
 	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/dasunpubudumal/jobseeker-llm/adzuna_client"
+	adzuna "github.com/dasunpubudumal/jobseeker-llm/adzuna_client"
 	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
 )
@@ -32,7 +32,7 @@ func loadEnv() {
 
 func run(prompt string) {
 	restyClient := resty.New()
-	adzuna := adzuna_client.AdzunaClient{
+	adzuna := adzuna.AdzunaClient{
 		AppID:      os.Getenv("ADZUNA_CLIENT_ID"),
 		AppKey:     os.Getenv("ADZUNA_CLIENT_SECRET"),
 		BaseURL:    "https://api.adzuna.com/v1/api",

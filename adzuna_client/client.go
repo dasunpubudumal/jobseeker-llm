@@ -1,4 +1,5 @@
-package adzuna_client
+/* Package adzuna contains the Adzuna client that connects with Adzuna API */
+package adzuna
 
 // RESTY Documentation https://github.com/go-resty/resty/blob/v2/README.md
 
