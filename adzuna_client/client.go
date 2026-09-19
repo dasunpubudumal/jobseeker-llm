@@ -3,6 +3,7 @@ package adzuna_client
 // RESTY Documentation https://github.com/go-resty/resty/blob/v2/README.md
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -19,6 +20,15 @@ type AdzunaClient struct {
 type AdzunaResponse struct {
 	Count   int               `json:"count"`
 	Results []AdjunaJobResult `json:"results"`
+}
+
+func (r *AdzunaResponse) AsJSONString() string {
+	bytes, err := json.Marshal(r)
+	if err != nil {
+		log.Fatal(fmt.Errorf("error marshalling the Adzuna response: %v", err))
+	}
+
+	return string(bytes)
 }
 
 type AdjunaJobResult struct {
@@ -56,6 +66,8 @@ func (c *AdzunaClient) GetJobsForAJobType(jobType string) AdzunaResponse {
 	if err != nil {
 		log.Fatal(fmt.Errorf("error in sending the request to Adjuna: %v", err))
 	}
+
+	log.Printf("Adzuna was called for %s; responded with %d results", jobType, response.Count)
 
 	return response
 }
