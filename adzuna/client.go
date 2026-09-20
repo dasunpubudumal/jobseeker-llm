@@ -53,6 +53,27 @@ type AdjunaJobResultCategory struct {
 	Tag   string `json:"tag"`
 }
 
+func (c *AdzunaClient) GetJobsForAJobTypeAndLocation(jobType string, location string) (AdzunaResponse, error) {
+	var response AdzunaResponse
+	_, err := c.HTTPClient.
+		R().
+		SetResult(&response).
+		SetQueryParam("app_id", c.AppID).
+		SetQueryParam("app_key", c.AppKey).
+		SetQueryParam("what", jobType).
+		SetQueryParam("where", location).
+		EnableTrace().
+		ExpectContentType("application/json").
+		Get(fmt.Sprintf("%s/jobs/gb/search/1", c.BaseURL))
+	if err != nil {
+		return AdzunaResponse{}, err
+	}
+
+	log.Printf("Adzuna was called for %s, %s; responded with %d results", jobType, location, response.Count)
+
+	return response, nil
+}
+
 func (c *AdzunaClient) GetJobsForAJobType(jobType string) (AdzunaResponse, error) {
 	var response AdzunaResponse
 	_, err := c.HTTPClient.
