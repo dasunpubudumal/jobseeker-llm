@@ -60,6 +60,17 @@ The loop repeats until you submit an empty line.
    go mod download
    ```
 
+## Pre-commit hooks
+
+Commits are scanned for leaked secrets using [pre-commit](https://pre-commit.com/) with [gitleaks](https://github.com/gitleaks/gitleaks) and the `detect-private-key` hook. To enable them after cloning:
+
+```sh
+pipx install pre-commit   # or: pip install pre-commit / pacman -S pre-commit
+pre-commit install
+```
+
+To scan the whole working tree manually, run `pre-commit run --all-files`.
+
 ## Usage
 
 ```sh
