@@ -71,6 +71,8 @@ pre-commit install
 
 To scan the whole working tree manually, run `pre-commit run --all-files`.
 
+The same checks run in CI (`.github/workflows/pre-commit.yml`) on every pull request and push to `main`. There, gitleaks runs as its own job over the full git history, because the pre-commit gitleaks hook only inspects staged changes.
+
 ## Usage
 
 ```sh
