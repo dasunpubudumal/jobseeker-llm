@@ -11,8 +11,6 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-COUNTRY := "gb"
-
 type AdzunaClient struct {
 	AppID      string
 	AppKey     string
