@@ -79,6 +79,9 @@ func (c *CaludeClient) Invoke(prompt string, adzunaClient adzuna.AdzunaClient) (
 		- Company Name
 		- Contract Time
 		- URL
+
+		Say how many results you found but only provide with a maximum number of 10 results. The 
+		results you provide the user must be ordered by the salary (descending).
 	`,
 		prompt,
 	)

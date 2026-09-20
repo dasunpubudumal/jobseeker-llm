@@ -11,6 +11,8 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+COUNTRY := "gb"
+
 type AdzunaClient struct {
 	AppID      string
 	AppKey     string
@@ -54,24 +56,38 @@ type AdjunaJobResultCategory struct {
 }
 
 func (c *AdzunaClient) GetJobsForAJobTypeAndLocation(jobType string, location string) (AdzunaResponse, error) {
-	var response AdzunaResponse
-	_, err := c.HTTPClient.
-		R().
-		SetResult(&response).
-		SetQueryParam("app_id", c.AppID).
-		SetQueryParam("app_key", c.AppKey).
-		SetQueryParam("what", jobType).
-		SetQueryParam("where", location).
-		EnableTrace().
-		ExpectContentType("application/json").
-		Get(fmt.Sprintf("%s/jobs/gb/search/1", c.BaseURL))
-	if err != nil {
-		return AdzunaResponse{}, err
+	count := 1
+	resultCount := 0
+	results := []AdjunaJobResult{}
+
+	for {
+		var response AdzunaResponse
+		log.Printf("Adzuna was called for the /search/%d page.", count)
+		_, err := c.HTTPClient.
+			R().
+			SetResult(&response).
+			SetQueryParam("app_id", c.AppID).
+			SetQueryParam("app_key", c.AppKey).
+			SetQueryParam("what", jobType).
+			SetQueryParam("where", location).
+			EnableTrace().
+			ExpectContentType("application/json").
+			Get(fmt.Sprintf("%s/jobs/gb/search/%d", c.BaseURL, count))
+		if len(response.Results) == 0 {
+			break
+		}
+		results = append(
+			results, response.Results...,
+		)
+		// This needs to happen only once.
+		resultCount = response.Count
+		if err != nil {
+			return AdzunaResponse{}, err
+		}
+		count++
 	}
 
-	log.Printf("Adzuna was called for %s, %s; responded with %d results", jobType, location, response.Count)
-
-	return response, nil
+	return AdzunaResponse{Count: resultCount, Results: results}, nil
 }
 
 func (c *AdzunaClient) GetJobsForAJobType(jobType string) (AdzunaResponse, error) {
