@@ -54,56 +54,48 @@ type AdjunaJobResultCategory struct {
 }
 
 func (c *AdzunaClient) GetJobsForAJobTypeAndLocation(jobType string, location string) (AdzunaResponse, error) {
-	count := 1
+	return c.searchAllPages(jobType, location)
+}
+
+func (c *AdzunaClient) GetJobsForAJobType(jobType string) (AdzunaResponse, error) {
+	return c.searchAllPages(jobType, "")
+}
+
+// searchAllPages pages through the search endpoint until a page comes back
+// empty and aggregates the results. The location filter is skipped when empty.
+func (c *AdzunaClient) searchAllPages(jobType string, location string) (AdzunaResponse, error) {
+	page := 1
 	resultCount := 0
 	results := []AdjunaJobResult{}
 
 	for {
 		var response AdzunaResponse
-		log.Printf("Adzuna was called for the /search/%d page.", count)
-		_, err := c.HTTPClient.
+		log.Printf("Adzuna was called for the /search/%d page.", page)
+		req := c.HTTPClient.
 			R().
 			SetResult(&response).
 			SetQueryParam("app_id", c.AppID).
 			SetQueryParam("app_key", c.AppKey).
 			SetQueryParam("what", jobType).
-			SetQueryParam("where", location).
 			EnableTrace().
-			ExpectContentType("application/json").
-			Get(fmt.Sprintf("%s/jobs/gb/search/%d", c.BaseURL, count))
-		if len(response.Results) == 0 {
-			break
+			ExpectContentType("application/json")
+		if location != "" {
+			req.SetQueryParam("where", location)
 		}
-		results = append(
-			results, response.Results...,
-		)
-		// This needs to happen only once.
-		resultCount = response.Count
+		_, err := req.Get(fmt.Sprintf("%s/jobs/gb/search/%d", c.BaseURL, page))
 		if err != nil {
 			return AdzunaResponse{}, err
 		}
-		count++
+		if len(response.Results) == 0 {
+			break
+		}
+		results = append(results, response.Results...)
+		// This needs to happen only once.
+		resultCount = response.Count
+		page++
 	}
+
+	log.Printf("Adzuna was called for %s; responded with %d results", jobType, resultCount)
 
 	return AdzunaResponse{Count: resultCount, Results: results}, nil
-}
-
-func (c *AdzunaClient) GetJobsForAJobType(jobType string) (AdzunaResponse, error) {
-	var response AdzunaResponse
-	_, err := c.HTTPClient.
-		R().
-		SetResult(&response).
-		SetQueryParam("app_id", c.AppID).
-		SetQueryParam("app_key", c.AppKey).
-		SetQueryParam("what", jobType).
-		EnableTrace().
-		ExpectContentType("application/json").
-		Get(fmt.Sprintf("%s/jobs/gb/search/1", c.BaseURL))
-	if err != nil {
-		return AdzunaResponse{}, err
-	}
-
-	log.Printf("Adzuna was called for %s; responded with %d results", jobType, response.Count)
-
-	return response, nil
 }

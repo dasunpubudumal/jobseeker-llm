@@ -10,9 +10,7 @@ A small Go CLI that lets an LLM search for jobs. You type a request in plain Eng
 2. The prompt is wrapped in a "Recruitment Specialist" system-style prompt and sent to Claude along with two tools:
    - `get_jobs_for_a_type` takes a `job_type`.
    - `get_jobs_for_a_type_and_location` takes a `job_type` and a `location`.
-3. Claude responds with a tool call, and the program runs the matching Adzuna query:
-   - Job type only: fetches the first page of results (`/jobs/gb/search/1`).
-   - Job type and location: pages through `/jobs/gb/search/{n}` until a page comes back empty, collecting every result.
+3. Claude responds with a tool call, and the program runs the matching Adzuna query. Both tools page through `/jobs/gb/search/{n}` until a page comes back empty, collecting every result. The location tool adds a `where` filter.
 4. The results are serialised to JSON and sent back to Claude as a tool result.
 5. Claude's final answer is printed to the terminal. It reports how many results were found and lists up to 10, ordered by salary (descending), with title, minimum salary, description, company, contract time and URL.
 
@@ -100,7 +98,7 @@ Submit an empty line to exit.
 ## Notes
 
 - Searches currently target Adzuna's Great Britain (`gb`) endpoint.
-- Location searches fetch every page of results, so broad queries can make many Adzuna requests.
+- Both tools fetch every page of results, so broad queries can make many Adzuna requests.
 - The Claude client uses `claude-sonnet-4-5` (`anthropic.ModelClaudeSonnet4_5`) regardless of the `MODEL` value; `MODEL` only picks the backend.
 - Only Claude is supported today. `llm.LLMClient` is the interface a new backend would implement.
 
