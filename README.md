@@ -1,5 +1,7 @@
 # jobseeker-llm
 
+[![build](https://github.com/dasunpubudumal/jobseeker-llm/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/dasunpubudumal/jobseeker-llm/actions/workflows/build.yml)
+
 A small Go CLI that lets an LLM search for jobs. You type a request in plain English, Claude decides which tool to call (job type only, or job type plus location), and the program fetches matching listings from the [Adzuna](https://developer.adzuna.com/) API and hands them back to Claude to summarise.
 
 ## How it works
